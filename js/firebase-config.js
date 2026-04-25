@@ -19,4 +19,4 @@ const FIREBASE_CONFIG = {
 // ============================================================
 // Blackmagic公式 Beginners Guide PDF（直リンク）
 // ローカルにPDFがある場合は "assets/DaVinci-Resolve-20_Beginners-Guide-JP.pdf" でも可
-const PDF_URL = "https://documents.blackmagicdesign.com/jp/UserManuals/DaVinci-Resolve-20-Beginners-Guide.pdf?_v=1757574012000";
+const PDF_URL = "https://firebasestorage.googleapis.com/v0/b/davinci-trainer.firebasestorage.app/o/DaVinci-Resolve-20_Beginners-Guide-JP.pdf?alt=media&token=f5e6dc2a-703d-478e-982d-3921371ce7d3";
