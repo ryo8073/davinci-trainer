@@ -367,8 +367,8 @@ function switchPdf(id) {
   // show/hide chapter nav
   document.getElementById('chapter-nav').style.display = pdf.showChapters ? '' : 'none';
 
-  // choose URL: prefer localPath if available
-  const url = pdf.localPath || pdf.url;
+  // 公式URLを使用（assetsにローカルPDFがある場合は localPath を優先）
+  const url = pdf.url || pdf.localPath;
   loadPdf(url);
 }
 
@@ -507,7 +507,7 @@ function initReader() {
 
   // 最初のPDFを読み込む（Beginners Guide）
   const defaultPdf = PDF_CATALOG.find(p => p.id === activePdfId);
-  if (defaultPdf) loadPdf(defaultPdf.localPath || defaultPdf.url);
+  if (defaultPdf) loadPdf(defaultPdf.url || defaultPdf.localPath);
 }
 
 initAuth();
