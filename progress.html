@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>進捗確認 - DaVinci Trainer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="progress">
+
+<!-- Auth Gate -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="auth-box">
+    <div class="auth-logo-wrap">
+      <div style="font-size:40px;margin-bottom:8px">🎬</div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">DaVinci Trainer</h2>
+      <p style="font-size:13px;color:var(--text3)">認定トレーナー資格 学習システム</p>
+    </div>
+    <form id="login-form" class="auth-form">
+      <input type="email"    id="login-email"    placeholder="メールアドレス" required autocomplete="email">
+      <input type="password" id="login-password" placeholder="パスワード"     required autocomplete="current-password">
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="auth-submit">ログイン</button>
+    </form>
+  </div>
+</div>
+
+<header class="site-header">
+  <a class="site-logo" href="index.html">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <div>DaVinci Trainer</div>
+      <div class="logo-sub">Certified Trainer Study System</div>
+    </div>
+  </a>
+  <nav class="site-nav">
+    <a class="nav-link" href="index.html">🏠 Today</a>
+    <a class="nav-link" href="quiz.html">🧠 Quiz</a>
+    <a class="nav-link active" href="progress.html">📊 Progress</a>
+    <a class="nav-link" href="study.html">📚 Study</a>
+    <a class="nav-link" href="reader.html">📖 Reader</a>
+    <button class="nav-link" onclick="logout()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:8px 14px;border-radius:8px">⎋ ログアウト</button>
+  </nav>
+</header>
+
+<main class="main">
+
+  <h1 style="font-size:22px;font-weight:700;margin-bottom:8px">📊 学習進捗</h1>
+  <p style="color:var(--text2);font-size:14px;margin-bottom:28px">8週間56日間の学習状況を確認できます</p>
+
+  <!-- Stats -->
+  <div class="prog-stats">
+    <div class="prog-stat">
+      <div class="ps-val" id="prog-overall" style="color:var(--blue)">—%</div>
+      <div class="ps-lbl">全体進捗</div>
+    </div>
+    <div class="prog-stat">
+      <div class="ps-val" id="prog-quiz-avg" style="color:var(--gold)">—</div>
+      <div class="ps-lbl">クイズ平均スコア</div>
+    </div>
+    <div class="prog-stat">
+      <div class="ps-val" id="prog-streak" style="color:#fb923c">—日</div>
+      <div class="ps-lbl">現在のストリーク</div>
+    </div>
+    <div class="prog-stat">
+      <div class="ps-val" id="prog-sessions" style="color:var(--purple)">—回</div>
+      <div class="ps-lbl">クイズ受験回数</div>
+    </div>
+  </div>
+
+  <!-- Week-by-Week Grid -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title">週別・日別 タスク完了グリッド</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:16px;height:16px;background:var(--green);border-radius:4px;vertical-align:middle;margin-right:4px"></span>完了</span>
+      <span><span style="display:inline-block;width:16px;height:16px;background:rgba(16,185,129,.2);border:1px solid var(--green);border-radius:4px;vertical-align:middle;margin-right:4px"></span>一部完了</span>
+      <span><span style="display:inline-block;width:16px;height:16px;border:2px solid var(--blue);border-radius:4px;vertical-align:middle;margin-right:4px"></span>今日</span>
+      <span><span style="display:inline-block;width:16px;height:16px;border:1px solid var(--border);border-radius:4px;vertical-align:middle;margin-right:4px;background:var(--bg3)"></span>未完了</span>
+    </div>
+    <div id="progress-grid" class="progress-grid"></div>
+  </div>
+
+  <!-- Quiz History -->
+  <div class="card">
+    <div class="card-title">🧠 クイズ受験履歴（直近10回）</div>
+    <div id="quiz-history"></div>
+  </div>
+
+  <!-- Reset -->
+  <div style="margin-top:32px;text-align:center">
+    <button class="btn btn-secondary" onclick="if(confirm('全進捗をリセットしますか？この操作は取り消せません。')){resetState().then(()=>location.reload())}" style="font-size:12px;color:var(--text3);padding:8px 16px">
+      ⚠️ 進捗をリセット（全削除）
+    </button>
+  </div>
+
+</main>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- App -->
+<script src="js/firebase-config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script>initAuth();</script>
+</body>
+</html>

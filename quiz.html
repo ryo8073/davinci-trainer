@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>練習クイズ - DaVinci Trainer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="quiz">
+
+<!-- Auth Gate -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="auth-box">
+    <div class="auth-logo-wrap">
+      <div style="font-size:40px;margin-bottom:8px">🎬</div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">DaVinci Trainer</h2>
+      <p style="font-size:13px;color:var(--text3)">認定トレーナー資格 学習システム</p>
+    </div>
+    <form id="login-form" class="auth-form">
+      <input type="email"    id="login-email"    placeholder="メールアドレス" required autocomplete="email">
+      <input type="password" id="login-password" placeholder="パスワード"     required autocomplete="current-password">
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="auth-submit">ログイン</button>
+    </form>
+  </div>
+</div>
+
+<header class="site-header">
+  <a class="site-logo" href="index.html">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <div>DaVinci Trainer</div>
+      <div class="logo-sub">Certified Trainer Study System</div>
+    </div>
+  </a>
+  <nav class="site-nav">
+    <a class="nav-link" href="index.html">🏠 Today</a>
+    <a class="nav-link active" href="quiz.html">🧠 Quiz</a>
+    <a class="nav-link" href="progress.html">📊 Progress</a>
+    <a class="nav-link" href="study.html">📚 Study</a>
+    <a class="nav-link" href="reader.html">📖 Reader</a>
+    <button class="nav-link" onclick="logout()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:8px 14px;border-radius:8px">⎋ ログアウト</button>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="quiz-wrap">
+
+    <h1 style="font-size:22px;font-weight:700;margin-bottom:8px">🧠 練習クイズ</h1>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:28px">
+      本番試験と同じ四択形式。合格ライン <strong style="color:var(--gold)">85%</strong> を目指そう！<br>
+      試験は生涯2回しか受けられないので、ここで徹底的に練習すること。
+    </p>
+
+    <!-- Setup Panel -->
+    <div class="card" id="quiz-setup">
+      <div class="card-title">クイズ設定</div>
+      <div class="quiz-setup">
+        <div class="form-group">
+          <label class="form-label" for="cat-select">📂 カテゴリ</label>
+          <select class="form-select" id="cat-select"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="count-select">🔢 問題数</label>
+          <select class="form-select" id="count-select">
+            <option value="5">5問（軽いウォームアップ）</option>
+            <option value="10" selected>10問（標準）</option>
+            <option value="20">20問（集中練習）</option>
+            <option value="50">50問（本番形式）</option>
+            <option value="999">全問（すべて）</option>
+          </select>
+        </div>
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px;font-size:13px;color:var(--text2)">
+          ⚠️ <strong style="color:var(--text)">本番試験の注意事項：</strong>
+          メールアドレスあたり生涯2回まで。合格ライン85%（50問中43問以上）。制限時間60分。
+          十分な準備ができてから受験すること。
+        </div>
+        <button class="btn btn-primary" id="start-btn" style="width:100%;padding:16px">
+          クイズを始める →
+        </button>
+      </div>
+    </div>
+
+    <!-- Quiz Area -->
+    <div id="quiz-area" class="hidden">
+      <div class="quiz-meta">
+        <span id="q-num" class="q-num">問 1 / 10</span>
+        <span id="q-cat" class="q-cat-badge"></span>
+        <span id="quiz-score-live" class="q-score">正解: 0</span>
+      </div>
+      <div class="quiz-progress-track">
+        <div id="quiz-progress-bar"></div>
+      </div>
+      <div class="q-card">
+        <div id="q-text" class="q-text"></div>
+        <div id="q-options" class="q-options"></div>
+        <div id="q-explanation" class="q-exp hidden"></div>
+      </div>
+      <div class="quiz-nav">
+        <button class="btn btn-primary hidden" id="next-btn">次の問題 →</button>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="quiz-result" class="hidden">
+      <div class="card">
+        <div class="result-hero">
+          <div class="result-score" id="result-score">—</div>
+          <div id="result-pct" class="result-pct">—%</div>
+          <div id="result-msg" class="result-msg"></div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;padding-top:20px;border-top:1px solid var(--border)">
+          <button class="btn btn-primary" onclick="location.reload()">もう一度やる</button>
+          <a class="btn btn-secondary" href="index.html">ダッシュボードへ</a>
+          <a class="btn btn-secondary" href="progress.html">履歴を見る</a>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">❌ 間違えた問題（復習用）</div>
+        <div id="wrong-list"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- App -->
+<script src="js/firebase-config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script>initAuth();</script>
+</body>
+</html>

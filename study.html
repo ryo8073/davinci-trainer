@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>学習ガイド - DaVinci Trainer</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.week-section { margin-bottom: 32px; }
+.week-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px 12px 0 0;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.week-header:hover { background: var(--bg3); }
+.week-header-icon { font-size: 20px; }
+.week-header-title { flex:1; font-size:15px; font-weight:700; }
+.week-header-guide { font-size:12px; color:var(--text3); }
+.week-body {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+.day-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.day-row:last-child { border-bottom: none; }
+.day-row:nth-child(odd) { background: var(--bg2); }
+.day-row:nth-child(even) { background: var(--bg3); }
+.day-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.day-content { flex: 1; }
+.day-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.day-tasks { display: flex; flex-direction: column; gap: 4px; }
+.day-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text2);
+}
+.day-task-icon { flex-shrink: 0; }
+.rest-day { opacity: .5; }
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.resource-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.resource-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.resource-card p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 12px; }
+.resource-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text);
+  text-decoration: none;
+}
+.resource-link:hover { border-color: var(--blue); color: var(--blue); text-decoration: none; }
+</style>
+</head>
+<body data-page="study">
+
+<!-- Auth Gate -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="auth-box">
+    <div class="auth-logo-wrap">
+      <div style="font-size:40px;margin-bottom:8px">🎬</div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">DaVinci Trainer</h2>
+      <p style="font-size:13px;color:var(--text3)">認定トレーナー資格 学習システム</p>
+    </div>
+    <form id="login-form" class="auth-form">
+      <input type="email"    id="login-email"    placeholder="メールアドレス" required autocomplete="email">
+      <input type="password" id="login-password" placeholder="パスワード"     required autocomplete="current-password">
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="auth-submit">ログイン</button>
+    </form>
+  </div>
+</div>
+
+<header class="site-header">
+  <a class="site-logo" href="index.html">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <div>DaVinci Trainer</div>
+      <div class="logo-sub">Certified Trainer Study System</div>
+    </div>
+  </a>
+  <nav class="site-nav">
+    <a class="nav-link" href="index.html">🏠 Today</a>
+    <a class="nav-link" href="quiz.html">🧠 Quiz</a>
+    <a class="nav-link" href="progress.html">📊 Progress</a>
+    <a class="nav-link active" href="study.html">📚 Study</a>
+    <a class="nav-link" href="reader.html">📖 Reader</a>
+    <button class="nav-link" onclick="logout()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:8px 14px;border-radius:8px">⎋ ログアウト</button>
+  </nav>
+</header>
+
+<main class="main">
+
+  <h1 style="font-size:22px;font-weight:700;margin-bottom:8px">📚 学習ガイド & カリキュラム</h1>
+  <p style="color:var(--text2);font-size:14px;margin-bottom:28px">
+    2026年5月1日〜6月26日（8週間56日間）の全カリキュラム。
+    試験目標: <strong style="color:var(--gold)">2026年6月25日</strong>
+  </p>
+
+  <!-- 公式リソース -->
+  <h2 style="font-size:16px;font-weight:700;margin-bottom:16px">📎 公式学習リソース</h2>
+  <div class="resource-grid">
+    <div class="resource-card">
+      <h3>📖 DaVinci Resolve Beginners Guide（無料PDF）</h3>
+      <p>全600ページ。試験出題範囲はこのガイド全体。このサイト上でも閲覧可能です。</p>
+      <a class="resource-link" href="reader.html" style="margin-bottom:8px;display:inline-flex">
+        📖 テキストリーダーで開く
+      </a>
+      <br>
+      <a class="resource-link" href="https://www.blackmagicdesign.com/jp/products/davinciresolve/training" target="_blank" style="margin-top:4px;display:inline-flex">
+        📥 Blackmagic公式ページ（無料DL）
+      </a>
+    </div>
+    <div class="resource-card">
+      <h3>▶️ Blackmagic公式YouTube</h3>
+      <p>各ページの公式チュートリアル動画。説明会で紹介されたプレイリストを活用しよう。</p>
+      <a class="resource-link" href="https://www.youtube.com/playlist?list=PLMdjXm5WUUy1SYJmJoNHY3E29nmtP9sCP" target="_blank">
+        ▶️ 公式プレイリストを開く
+      </a>
+    </div>
+    <div class="resource-card">
+      <h3>🏆 認定試験申し込みページ</h3>
+      <p>まず申し込みフォームを提出（足切りあり）。試験は生涯2回のみ。85%合格が必須。</p>
+      <a class="resource-link" href="https://www.blackmagicdesign.com/jp/products/davinciresolve/training" target="_blank">
+        🎓 認定トレーナー申し込みページ
+      </a>
+    </div>
+    <div class="resource-card">
+      <h3>📧 Blackmagic Japan 問い合わせ</h3>
+      <p>不明点は日本法人教育担当へ直接質問できる。積極的に活用しよう。</p>
+      <a class="resource-link" href="mailto:learning-jp@blackmagicdesign.com">
+        ✉️ learning-jp@blackmagicdesign.com
+      </a>
+    </div>
+  </div>
+
+  <!-- 試験概要 -->
+  <div class="card" style="margin-bottom:32px;background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.25)">
+    <div class="card-title" style="color:var(--gold)">⚠️ 試験の重要ポイント（必読）</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;font-size:14px">
+      <div><strong style="color:var(--text)">形式</strong><br><span style="color:var(--text2)">四択（Multiple Choice）</span></div>
+      <div><strong style="color:var(--text)">問題数</strong><br><span style="color:var(--text2)">50問</span></div>
+      <div><strong style="color:var(--text)">制限時間</strong><br><span style="color:var(--text2)">60分</span></div>
+      <div><strong style="color:var(--gold)">合格ライン</strong><br><span style="color:var(--gold)">85%（43問以上）</span></div>
+      <div><strong style="color:var(--red)">受験回数</strong><br><span style="color:var(--red)">生涯2回のみ ⚠️</span></div>
+      <div><strong style="color:var(--text)">出題範囲</strong><br><span style="color:var(--text2)">Beginners Guide 全ページ（浅く広く）</span></div>
+      <div><strong style="color:var(--text)">言語</strong><br><span style="color:var(--text2)">英語（オーストラリア制作）</span></div>
+      <div><strong style="color:var(--text)">面談</strong><br><span style="color:var(--text2)">合格後に担当者と面談（雑談程度）</span></div>
+    </div>
+  </div>
+
+  <!-- 8週間カリキュラム -->
+  <h2 style="font-size:16px;font-weight:700;margin-bottom:16px">📅 8週間 全カリキュラム</h2>
+
+  <div id="curriculum-container"></div>
+
+</main>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- App -->
+<script src="js/firebase-config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script>initAuth();</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('curriculum-container');
+  const TASK_ICONS = { r:'📖', v:'▶️', p:'🎬', q:'🧠', e:'📝' };
+  const TASK_NAMES = { r:'読む', v:'動画', p:'実践', q:'クイズ', e:'模擬試験' };
+
+  WEEKS.forEach(week => {
+    const weekDays = DAYS.filter(d => d.w === week.w);
+    const section = document.createElement('div');
+    section.className = 'week-section';
+
+    const header = document.createElement('div');
+    header.className = 'week-header';
+    header.style.borderLeft = `4px solid ${week.color}`;
+    header.innerHTML = `
+      <span class="week-header-icon">${week.icon}</span>
+      <div>
+        <div class="week-header-title">Week ${week.w}：${week.title}</div>
+        <div class="week-header-guide" style="color:${week.color}">${week.sub} / ${week.guide}</div>
+      </div>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'week-body';
+
+    weekDays.forEach(day => {
+      const row = document.createElement('div');
+      row.className = `day-row ${day.tasks.length === 1 && day.tasks[0].t === 'r' && day.tasks[0].min <= 20 ? 'rest-day' : ''}`;
+
+      const startDate = new Date(START_DATE);
+      const dayDate = new Date(startDate.getTime() + (day.d - 1) * 86400000);
+      const dateStr = `${dayDate.getMonth()+1}/${dayDate.getDate()}`;
+
+      row.innerHTML = `
+        <div class="day-num" title="Day ${day.d} (${dateStr})">
+          ${day.d}<br><span style="font-size:10px;font-weight:400">${dateStr}</span>
+        </div>
+        <div class="day-content">
+          <div class="day-title">${day.title}</div>
+          <div class="day-tasks">
+            ${day.tasks.map(t => `
+              <div class="day-task">
+                <span class="day-task-icon">${TASK_ICONS[t.t] || '•'}</span>
+                <span><span style="font-size:11px;color:var(--text3)">[${TASK_NAMES[t.t]}/${t.min}分]</span> ${t.text}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      body.appendChild(row);
+    });
+
+    header.addEventListener('click', () => {
+      body.style.display = body.style.display === 'none' ? '' : 'none';
+    });
+
+    section.appendChild(header);
+    section.appendChild(body);
+    container.appendChild(section);
+  });
+});
+</script>
+</body>
+</html>

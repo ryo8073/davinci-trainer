@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DaVinci Resolve 認定トレーナー学習システム</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="dashboard">
+
+<!-- Auth Gate -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="auth-box">
+    <div class="auth-logo-wrap">
+      <div style="font-size:40px;margin-bottom:8px">🎬</div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">DaVinci Trainer</h2>
+      <p style="font-size:13px;color:var(--text3)">認定トレーナー資格 学習システム</p>
+    </div>
+    <form id="login-form" class="auth-form">
+      <input type="email"    id="login-email"    placeholder="メールアドレス" required autocomplete="email">
+      <input type="password" id="login-password" placeholder="パスワード"     required autocomplete="current-password">
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="auth-submit">ログイン</button>
+    </form>
+  </div>
+</div>
+
+<header class="site-header">
+  <a class="site-logo" href="index.html">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <div>DaVinci Trainer</div>
+      <div class="logo-sub">Certified Trainer Study System</div>
+    </div>
+  </a>
+  <nav class="site-nav">
+    <a class="nav-link active" href="index.html">🏠 Today</a>
+    <a class="nav-link" href="quiz.html">🧠 Quiz</a>
+    <a class="nav-link" href="progress.html">📊 Progress</a>
+    <a class="nav-link" href="study.html">📚 Study</a>
+    <a class="nav-link" href="reader.html">📖 Reader</a>
+    <button class="nav-link" onclick="logout()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:8px 14px;border-radius:8px">⎋ ログアウト</button>
+  </nav>
+</header>
+
+<main class="main">
+
+  <!-- Hero: Today's Overview -->
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-badge" style="margin-bottom:12px">
+          <span class="day-badge" id="today-day-num">Day —</span>
+          <span class="week-badge" id="today-week">Week —</span>
+        </div>
+        <div class="hero-title" id="today-title">読み込み中...</div>
+        <div class="hero-week-theme" id="week-theme"></div>
+      </div>
+      <div class="exam-chip" id="exam-countdown">試験まで計算中...</div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">🔥 ストリーク</div>
+      <div class="stat-value streak-val"><span id="streak-count">0</span><small style="font-size:14px;color:var(--text2)"> 日</small></div>
+      <div style="font-size:11px;color:var(--text3)">連続学習日数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">📈 全体進捗</div>
+      <div class="ring-wrap" id="overall-ring">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle class="ring-bg" cx="44" cy="44" r="36"/>
+          <circle class="ring-progress" cx="44" cy="44" r="36" stroke="#3b82f6"/>
+        </svg>
+        <div class="ring-text">
+          <span class="ring-pct overall-val" id="overall-pct">0%</span>
+          <span class="ring-lbl">Overall</span>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">✅ 今日の進捗</div>
+      <div class="ring-wrap" id="today-ring">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle class="ring-bg" cx="44" cy="44" r="36"/>
+          <circle class="ring-progress" cx="44" cy="44" r="36" stroke="#10b981"/>
+        </svg>
+        <div class="ring-text">
+          <span class="ring-pct today-val" id="today-pct">0%</span>
+          <span class="ring-lbl">Today</span>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🧠 クイズ平均</div>
+      <div class="stat-value quiz-val"><span id="quiz-avg">—</span></div>
+      <div style="font-size:11px;color:var(--text3)">目標: 85%以上</div>
+    </div>
+  </div>
+
+  <!-- Main Grid: Tasks + Sidebar -->
+  <div class="main-grid">
+    <!-- Left: Today's Tasks -->
+    <div>
+      <div class="card">
+        <div class="card-title">今日のタスク</div>
+        <div id="task-list">
+          <p style="color:var(--text3);font-size:14px">タスクを読み込み中...</p>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="card" style="margin-top:20px;background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.2)">
+        <div class="card-title" style="color:var(--blue)">💡 本日の学習ヒント</div>
+        <p style="font-size:14px;color:var(--text2);line-height:1.7" id="daily-tip">
+          試験は<strong style="color:var(--text)">四択50問・60分</strong>、合格ラインは<strong style="color:var(--gold)">85%（43問正解）</strong>。
+          1問わからなくても時間をかけすぎず、まず全問を解いてから見直す戦略が有効です。
+          Beginners Guideは<strong style="color:var(--text)">600ページ全ページが出題範囲</strong>です。
+        </p>
+      </div>
+    </div>
+
+    <!-- Right: Sidebar -->
+    <div>
+      <!-- Week Progress -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">週別進捗</div>
+        <div id="week-bars"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-title">クイックアクション</div>
+        <div class="quick-links">
+          <a class="quick-btn" href="quiz.html">
+            <div class="qb-icon" style="background:rgba(245,158,11,.15);color:var(--gold)">🧠</div>
+            <div>
+              <div style="font-weight:600">練習クイズを始める</div>
+              <div style="font-size:12px;color:var(--text2)">全60問 / カテゴリ別も可</div>
+            </div>
+          </a>
+          <a class="quick-btn" href="progress.html">
+            <div class="qb-icon" style="background:rgba(59,130,246,.15);color:var(--blue)">📊</div>
+            <div>
+              <div style="font-weight:600">進捗を確認する</div>
+              <div style="font-size:12px;color:var(--text2)">週別グリッド・クイズ履歴</div>
+            </div>
+          </a>
+          <a class="quick-btn" href="study.html">
+            <div class="qb-icon" style="background:rgba(16,185,129,.15);color:var(--green)">📚</div>
+            <div>
+              <div style="font-weight:600">学習ガイドを開く</div>
+              <div style="font-size:12px;color:var(--text2)">カリキュラム全体を確認</div>
+            </div>
+          </a>
+          <a class="quick-btn" href="https://www.blackmagicdesign.com/jp/products/davinciresolve/training" target="_blank">
+            <div class="qb-icon" style="background:rgba(239,68,68,.15);color:var(--red)">🏆</div>
+            <div>
+              <div style="font-weight:600">Blackmagic公式ページ</div>
+              <div style="font-size:12px;color:var(--text2)">認定トレーナー情報</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- App -->
+<script src="js/firebase-config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script>initAuth();</script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>テキスト閲覧 - DaVinci Trainer</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* ── Reader Layout ── */
+.reader-layout {
+  display: flex;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.reader-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 12px;
+}
+.sidebar-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.chapter-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: background .15s, border-color .15s;
+  line-height: 1.4;
+}
+.chapter-btn:hover {
+  background: var(--bg3);
+  border-color: var(--border);
+  color: var(--text);
+}
+.chapter-btn .cb-week {
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--blue);
+  display: block;
+  margin-bottom: 2px;
+}
+.chapter-btn .cb-pages {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ── Main Area ── */
+.reader-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Toolbar ── */
+.reader-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toolbar-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.tb-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+}
+.tb-btn:hover { background: var(--border); border-color: var(--border2); }
+.tb-btn:disabled { opacity: .4; cursor: default; }
+.tb-page-input {
+  width: 56px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+  outline: none;
+}
+.tb-page-input:focus { border-color: var(--blue); }
+.tb-page-total {
+  font-size: 13px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.tb-zoom-val {
+  font-size: 13px;
+  color: var(--text2);
+  min-width: 44px;
+  text-align: center;
+}
+
+/* ── Canvas Area ── */
+.reader-canvas-wrap {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px;
+  background: #333;
+  position: relative;
+}
+#pdf-canvas {
+  box-shadow: 0 4px 32px rgba(0,0,0,.6);
+  display: block;
+  max-width: 100%;
+}
+
+/* ── States ── */
+.reader-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  text-align: center;
+  padding: 40px;
+  gap: 12px;
+}
+.reader-msg h3 { color: var(--text); font-size: 18px; }
+.reader-msg p { font-size: 14px; line-height: 1.7; max-width: 480px; }
+.reader-msg code {
+  background: var(--bg2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--gold);
+}
+.reader-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border2);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.hidden { display: none !important; }
+</style>
+</head>
+<body data-page="reader">
+
+<!-- Auth Gate -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="auth-box">
+    <div class="auth-logo-wrap">
+      <div style="font-size:40px;margin-bottom:8px">🎬</div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">DaVinci Trainer</h2>
+      <p style="font-size:13px;color:var(--text3)">認定トレーナー資格 学習システム</p>
+    </div>
+    <form id="login-form" class="auth-form">
+      <input type="email"    id="login-email"    placeholder="メールアドレス" required autocomplete="email">
+      <input type="password" id="login-password" placeholder="パスワード"     required autocomplete="current-password">
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="auth-submit">ログイン</button>
+    </form>
+  </div>
+</div>
+
+<header class="site-header">
+  <a class="site-logo" href="index.html">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <div>DaVinci Trainer</div>
+      <div class="logo-sub">Certified Trainer Study System</div>
+    </div>
+  </a>
+  <nav class="site-nav">
+    <a class="nav-link" href="index.html">🏠 Today</a>
+    <a class="nav-link" href="quiz.html">🧠 Quiz</a>
+    <a class="nav-link" href="progress.html">📊 Progress</a>
+    <a class="nav-link" href="study.html">📚 Study</a>
+    <a class="nav-link active" href="reader.html">📖 Reader</a>
+    <button class="nav-link" onclick="logout()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:8px 14px;border-radius:8px">⎋ ログアウト</button>
+  </nav>
+</header>
+
+<div class="reader-layout">
+
+  <!-- Sidebar: Chapter Jump -->
+  <aside class="reader-sidebar">
+    <div class="sidebar-title">章ジャンプ</div>
+    <div id="chapter-nav"></div>
+  </aside>
+
+  <div class="reader-main">
+    <!-- Toolbar -->
+    <div class="reader-toolbar">
+      <div class="toolbar-group">
+        <button class="tb-btn" id="btn-prev" disabled>← 前</button>
+        <input  class="tb-page-input" id="page-input" type="number" min="1" value="1">
+        <span   class="tb-page-total" id="page-total">/ —</span>
+        <button class="tb-btn" id="btn-next" disabled>次 →</button>
+      </div>
+      <div class="toolbar-sep"></div>
+      <div class="toolbar-group">
+        <button class="tb-btn" id="btn-zoom-out">－</button>
+        <span   class="tb-zoom-val" id="zoom-val">100%</span>
+        <button class="tb-btn" id="btn-zoom-in">＋</button>
+        <button class="tb-btn" id="btn-zoom-fit">幅に合わせる</button>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="reader-canvas-wrap" id="canvas-wrap">
+      <canvas id="pdf-canvas"></canvas>
+
+      <div class="reader-msg" id="state-loading">
+        <div class="reader-spinner"></div>
+        <p>PDFを読み込み中...</p>
+      </div>
+
+      <div class="reader-msg hidden" id="state-nourl">
+        <h3>📄 PDF URLが未設定です</h3>
+        <p>
+          1. <strong>Blackmagic公式サイト</strong> から Beginners Guide PDFをダウンロード<br>
+          2. <strong>Firebase Storage</strong> に <code>pdf/DaVinci_Resolve_Beginners_Guide.pdf</code> としてアップロード<br>
+          3. Storage でファイルを選択 → 「ダウンロードURLをコピー」<br>
+          4. <code>js/firebase-config.js</code> の <code>PDF_URL</code> に貼り付け → デプロイ
+        </p>
+      </div>
+
+      <div class="reader-msg hidden" id="state-error">
+        <h3>⚠️ PDFの読み込みに失敗しました</h3>
+        <p id="error-detail"></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- App -->
+<script src="js/firebase-config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script>
+
+// ── Chapter sidebar ──────────────────────────────────────
+(function buildChapterNav() {
+  const container = document.getElementById('chapter-nav');
+  if (!container) return;
+  WEEKS.forEach(week => {
+    // ページ番号をguideから抽出（例: "Ch.1-3 / p.1-80"）
+    const m = week.guide.match(/p\.(\d+)/);
+    const startPage = m ? parseInt(m[1]) : 1;
+
+    const btn = document.createElement('button');
+    btn.className = 'chapter-btn';
+    btn.innerHTML = `
+      <span class="cb-week">${week.icon} Week ${week.w}</span>
+      <span>${week.title}</span>
+      <span class="cb-pages">${week.guide}</span>
+    `;
+    btn.addEventListener('click', () => jumpToPage(startPage));
+    container.appendChild(btn);
+  });
+})();
+
+// ── PDF.js Reader ────────────────────────────────────────
+let _pdf     = null;
+let _curPage = 1;
+let _scale   = 1.0;
+let _rendering = false;
+
+const canvas   = document.getElementById('pdf-canvas');
+const ctx      = canvas.getContext('2d');
+const pageInput = document.getElementById('page-input');
+const pageTotal = document.getElementById('page-total');
+const btnPrev   = document.getElementById('btn-prev');
+const btnNext   = document.getElementById('btn-next');
+const zoomVal   = document.getElementById('zoom-val');
+const canvasWrap = document.getElementById('canvas-wrap');
+
+function showState(id) {
+  ['state-loading','state-nourl','state-error'].forEach(s => {
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+  canvas.classList.toggle('hidden', id !== null);
+}
+
+async function renderPage(num) {
+  if (!_pdf || _rendering) return;
+  _rendering = true;
+  try {
+    const page     = await _pdf.getPage(num);
+    const viewport = page.getViewport({ scale: _scale });
+    canvas.width  = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    _curPage = num;
+    pageInput.value = num;
+    btnPrev.disabled = num <= 1;
+    btnNext.disabled = num >= _pdf.numPages;
+  } finally {
+    _rendering = false;
+  }
+}
+
+function jumpToPage(num) {
+  const n = Math.max(1, Math.min(_pdf ? _pdf.numPages : 1, num));
+  renderPage(n);
+}
+
+function setZoom(scale) {
+  _scale = Math.max(0.5, Math.min(3.0, scale));
+  zoomVal.textContent = Math.round(_scale * 100) + '%';
+  if (_pdf) renderPage(_curPage);
+}
+
+function fitWidth() {
+  const wrapW = canvasWrap.clientWidth - 48; // padding
+  // get natural width from first page viewport at scale=1
+  _pdf.getPage(_curPage).then(page => {
+    const vp = page.getViewport({ scale: 1 });
+    setZoom(wrapW / vp.width);
+  });
+}
+
+async function initReader() {
+  // ページ遷移
+  btnPrev.addEventListener('click',  () => jumpToPage(_curPage - 1));
+  btnNext.addEventListener('click',  () => jumpToPage(_curPage + 1));
+  pageInput.addEventListener('change', () => jumpToPage(parseInt(pageInput.value) || 1));
+  document.getElementById('btn-zoom-in').addEventListener('click',  () => setZoom(_scale + 0.15));
+  document.getElementById('btn-zoom-out').addEventListener('click', () => setZoom(_scale - 0.15));
+  document.getElementById('btn-zoom-fit').addEventListener('click', fitWidth);
+
+  // キーボード
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') jumpToPage(_curPage + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   jumpToPage(_curPage - 1);
+  });
+
+  if (!PDF_URL) {
+    showState('state-nourl');
+    return;
+  }
+
+  showState('state-loading');
+
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const loadingTask = pdfjsLib.getDocument(PDF_URL);
+    _pdf = await loadingTask.promise;
+
+    pageTotal.textContent = `/ ${_pdf.numPages}`;
+    pageInput.max = _pdf.numPages;
+    btnPrev.disabled = false;
+    btnNext.disabled = false;
+
+    showState(null);
+    fitWidth();
+    await renderPage(1);
+  } catch (e) {
+    document.getElementById('error-detail').textContent = e.message;
+    showState('state-error');
+    console.error('PDF load error:', e);
+  }
+}
+
+initAuth();
+</script>
+</body>
+</html>
