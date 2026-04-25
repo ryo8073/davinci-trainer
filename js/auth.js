@@ -19,6 +19,7 @@ function initAuth() {
       else if (page === 'quiz')      initQuiz();
       else if (page === 'progress')  await initProgress();
       else if (page === 'reader')    initReader();
+      else if (page === 'video')     { /* video list already built */ }
     } else {
       if (gate) gate.style.display = 'flex';
     }

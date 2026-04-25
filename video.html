@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>動画学習 - DaVinci Trainer</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.video-layout {
+  display: flex;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.video-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 12px;
+}
+.sidebar-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.video-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: background .15s, border-color .15s;
+}
+.video-btn:hover {
+  background: var(--bg3);
+  border-color: var(--border);
+}
+.video-btn.active {
+  background: rgba(59,130,246,.12);
+  border-color: var(--blue);
+}
+.vb-thumb {
+  width: 72px;
+  height: 40px;
+  border-radius: 4px;
+  background: var(--bg3);
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+.vb-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.vb-thumb-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text3);
+}
+.vb-info { flex: 1; min-width: 0; }
+.vb-ep {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 2px;
+}
+.vb-title {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+  font-weight: 500;
+}
+.vb-sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* ── Main player ── */
+.video-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #111;
+}
+.player-wrap {
+  flex: 1;
+  position: relative;
+  background: #000;
+}
+.player-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.player-info {
+  flex-shrink: 0;
+  padding: 16px 24px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}
+.player-ep {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+.player-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.player-sub {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.player-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pa-btn {
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.pa-btn:hover { background: var(--border); }
+.pa-btn.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.pa-btn.primary:hover { background: #2563eb; }
+
+.no-video {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  gap: 12px;
+  text-align: center;
+  padding: 40px;
+}
+.no-video h3 { color: var(--text); font-size: 18px; }
+.no-video p { font-size: 14px; max-width: 400px; line-height: 1.7; }
+</style>
+</head>
+<body data-page="video">
+
+<!-- Auth Gate -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="auth-box">
+    <div class="auth-logo-wrap">
+      <div style="font-size:40px;margin-bottom:8px">🎬</div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">DaVinci Trainer</h2>
+      <p style="font-size:13px;color:var(--text3)">認定トレーナー資格 学習システム</p>
+    </div>
+    <form id="login-form" class="auth-form">
+      <input type="email"    id="login-email"    placeholder="メールアドレス" required autocomplete="email">
+      <input type="password" id="login-password" placeholder="パスワード"     required autocomplete="current-password">
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="auth-submit">ログイン</button>
+    </form>
+  </div>
+</div>
+
+<header class="site-header">
+  <a class="site-logo" href="index.html">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <div>DaVinci Trainer</div>
+      <div class="logo-sub">Certified Trainer Study System</div>
+    </div>
+  </a>
+  <nav class="site-nav">
+    <a class="nav-link" href="index.html">🏠 Today</a>
+    <a class="nav-link" href="quiz.html">🧠 Quiz</a>
+    <a class="nav-link" href="progress.html">📊 Progress</a>
+    <a class="nav-link" href="study.html">📚 Study</a>
+    <a class="nav-link active" href="video.html">▶️ Video</a>
+    <a class="nav-link" href="reader.html">📖 Reader</a>
+    <button class="nav-link" onclick="logout()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:8px 14px;border-radius:8px">⎋ ログアウト</button>
+  </nav>
+</header>
+
+<div class="video-layout">
+
+  <!-- Sidebar -->
+  <aside class="video-sidebar">
+    <div class="sidebar-title">公式チュートリアル（全9回）</div>
+    <div id="video-list"></div>
+  </aside>
+
+  <!-- Main -->
+  <div class="video-main" id="video-main">
+    <div class="no-video" id="no-video">
+      <div style="font-size:48px">▶️</div>
+      <h3>動画を選択してください</h3>
+      <p>左のリストからBlackmagic公式チュートリアルを選んで再生できます。<br>DaVinci Resolve 18 入門講座（全9回）</p>
+    </div>
+    <div class="player-wrap hidden" id="player-wrap">
+      <iframe id="yt-player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+    <div class="player-info hidden" id="player-info">
+      <div class="player-ep" id="pi-ep"></div>
+      <div class="player-title" id="pi-title"></div>
+      <div class="player-sub" id="pi-sub"></div>
+      <div class="player-actions">
+        <button class="pa-btn" id="btn-prev-vid" onclick="playPrev()">← 前の動画</button>
+        <button class="pa-btn" id="btn-next-vid" onclick="playNext()">次の動画 →</button>
+        <a class="pa-btn primary" id="pi-yt-link" href="#" target="_blank">▶️ YouTubeで開く</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- App -->
+<script src="js/firebase-config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script>
+
+const VIDEOS = [
+  { id:"ZTbh928Qk3o", ep:"#1", title:"動画編集の基礎",         sub:"エディットページ",                   page:"p.111-200" },
+  { id:"r7qIZxok6v8", ep:"#2", title:"オーディオ・エフェクト・タイトル", sub:"エディットページ",            page:"p.200-280" },
+  { id:"yg6lEJURdTk", ep:"#3", title:"プライマリーカラーコレクション", sub:"カラーページ",                page:"p.336-420" },
+  { id:"jDHc8-LfCbs", ep:"#4", title:"セカンダリーカラーコレクション", sub:"カラーページ",               page:"p.421-500" },
+  { id:"sqMdXBGZ5pA", ep:"#5", title:"グレードの管理",           sub:"カラーページ",                   page:"p.500-520" },
+  { id:"ZHrgtYN_PjE", ep:"#6", title:"最初に確認すべき設定と素材の管理", sub:"メディアページ",            page:"p.1-80"    },
+  { id:"0og6U9u0CPs", ep:"#7", title:"音声編集の基礎",           sub:"Fairlightページ",                page:"p.581-630" },
+  { id:"jo-A1bMjWqE", ep:"#8", title:"合成の基礎",              sub:"Fusionページ",                   page:"p.516-580" },
+  { id:"KjWp-FsYWv0", ep:"#9", title:"ファイルの書き出しとプロジェクト管理", sub:"デリバーページ",       page:"p.621-645" },
+];
+
+let currentIdx = -1;
+
+function buildList() {
+  const list = document.getElementById('video-list');
+  VIDEOS.forEach((v, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'video-btn';
+    btn.id = `vbtn-${i}`;
+    btn.innerHTML = `
+      <div class="vb-thumb">
+        <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="vb-thumb-num" style="display:none">${v.ep}</div>
+      </div>
+      <div class="vb-info">
+        <div class="vb-ep">入門講座 ${v.ep}</div>
+        <div class="vb-title">${v.title}</div>
+        <div class="vb-sub">${v.sub} / ${v.page}</div>
+      </div>
+    `;
+    btn.addEventListener('click', () => playVideo(i));
+    list.appendChild(btn);
+  });
+}
+
+function playVideo(idx) {
+  const v = VIDEOS[idx];
+  currentIdx = idx;
+
+  // update sidebar active state
+  document.querySelectorAll('.video-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+
+  // show player
+  document.getElementById('no-video').classList.add('hidden');
+  document.getElementById('player-wrap').classList.remove('hidden');
+  document.getElementById('player-info').classList.remove('hidden');
+
+  // set iframe src
+  document.getElementById('yt-player').src =
+    `https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0`;
+
+  // update info panel
+  document.getElementById('pi-ep').textContent    = `入門講座 ${v.ep} ／ ${v.sub} ／ Beginners Guide ${v.page}`;
+  document.getElementById('pi-title').textContent  = v.title;
+  document.getElementById('pi-sub').textContent    = `DaVinci Resolve 18 入門講座 ${v.ep}「${v.title}」`;
+  document.getElementById('pi-yt-link').href       = `https://www.youtube.com/watch?v=${v.id}`;
+
+  // update nav buttons
+  document.getElementById('btn-prev-vid').disabled = idx <= 0;
+  document.getElementById('btn-next-vid').disabled = idx >= VIDEOS.length - 1;
+
+  // scroll sidebar to active item
+  document.getElementById(`vbtn-${idx}`)?.scrollIntoView({ block: 'nearest' });
+}
+
+function playPrev() { if (currentIdx > 0) playVideo(currentIdx - 1); }
+function playNext() { if (currentIdx < VIDEOS.length - 1) playVideo(currentIdx + 1); }
+
+// keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight') playNext();
+  if (e.key === 'ArrowLeft')  playPrev();
+});
+
+buildList();
+initAuth();
+</script>
+</body>
+</html>

@@ -17,4 +17,6 @@ const FIREBASE_CONFIG = {
 // （Storage > ファイル右クリック > ダウンロードURLをコピー）
 // または任意の公開URLでも可
 // ============================================================
-const PDF_URL = "";
+// Blackmagic公式 Beginners Guide PDF（直リンク）
+// ローカルにPDFがある場合は "assets/DaVinci-Resolve-20_Beginners-Guide-JP.pdf" でも可
+const PDF_URL = "https://documents.blackmagicdesign.com/jp/UserManuals/DaVinci-Resolve-20-Beginners-Guide.pdf?_v=1757574012000";

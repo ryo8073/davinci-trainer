@@ -213,6 +213,7 @@
     <a class="nav-link" href="quiz.html">🧠 Quiz</a>
     <a class="nav-link" href="progress.html">📊 Progress</a>
     <a class="nav-link" href="study.html">📚 Study</a>
+    <a class="nav-link" href="video.html">▶️ Video</a>
     <a class="nav-link active" href="reader.html">📖 Reader</a>
     <button class="nav-link" onclick="logout()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:8px 14px;border-radius:8px">⎋ ログアウト</button>
   </nav>
@@ -220,8 +221,10 @@
 
 <div class="reader-layout">
 
-  <!-- Sidebar: Chapter Jump -->
+  <!-- Sidebar: PDF Select + Chapter Jump -->
   <aside class="reader-sidebar">
+    <div class="sidebar-title">ガイド選択</div>
+    <div id="pdf-nav" style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"></div>
     <div class="sidebar-title">章ジャンプ</div>
     <div id="chapter-nav"></div>
   </aside>
@@ -285,6 +288,89 @@
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
 <script>
+
+// ── PDF catalog ──────────────────────────────────────────
+const PDF_CATALOG = [
+  {
+    id: "beginners",
+    label: "📖 Beginners Guide JP",
+    sub: "試験出題範囲 / 約600p",
+    url: "https://documents.blackmagicdesign.com/jp/UserManuals/DaVinci-Resolve-20-Beginners-Guide.pdf?_v=1757574012000",
+    localPath: "assets/DaVinci-Resolve-20_Beginners-Guide-JP.pdf",
+    showChapters: true,
+  },
+  {
+    id: "editors",
+    label: "✂️ Editor's Guide",
+    sub: "編集者向け上級ガイド",
+    url: "https://documents.blackmagicdesign.com/UserManuals/DaVinci-Resolve-20-Editors-Guide.pdf",
+    localPath: "assets/DaVinci-Resolve-20-Editors-Guide.pdf",
+    showChapters: false,
+  },
+  {
+    id: "colorist",
+    label: "🎨 Colorist Guide JP",
+    sub: "カラーグレーディング専門",
+    url: "https://documents.blackmagicdesign.com/jp/UserManuals/DaVinci-Resolve-18-Colorist-Guide-JP.pdf",
+    localPath: null,
+    showChapters: false,
+  },
+  {
+    id: "fairlight",
+    label: "🎵 Fairlight Audio Guide JP",
+    sub: "音声編集専門",
+    url: "https://documents.blackmagicdesign.com/jp/UserManuals/DaVinci-Resolve-18-Fairlight-Guide-JP.pdf",
+    localPath: null,
+    showChapters: false,
+  },
+  {
+    id: "vfx",
+    label: "✨ VFX Guide JP",
+    sub: "Fusion / 視覚効果専門",
+    url: "https://documents.blackmagicdesign.com/jp/UserManuals/DaVinci-Resolve-18-VFX-Guide-JP.pdf",
+    localPath: null,
+    showChapters: false,
+  },
+];
+
+let activePdfId = "beginners";
+
+(function buildPdfNav() {
+  const container = document.getElementById('pdf-nav');
+  PDF_CATALOG.forEach(pdf => {
+    const btn = document.createElement('button');
+    btn.className = 'chapter-btn';
+    btn.id = `pdfbtn-${pdf.id}`;
+    if (pdf.id === activePdfId) btn.style.background = 'rgba(59,130,246,.12)', btn.style.borderColor = 'var(--blue)';
+    btn.innerHTML = `
+      <span class="cb-week">${pdf.label}</span>
+      <span class="cb-pages">${pdf.sub}</span>
+    `;
+    btn.addEventListener('click', () => switchPdf(pdf.id));
+    container.appendChild(btn);
+  });
+})();
+
+function switchPdf(id) {
+  activePdfId = id;
+  const pdf = PDF_CATALOG.find(p => p.id === id);
+  if (!pdf) return;
+
+  // update sidebar highlight
+  PDF_CATALOG.forEach(p => {
+    const b = document.getElementById(`pdfbtn-${p.id}`);
+    if (!b) return;
+    b.style.background = p.id === id ? 'rgba(59,130,246,.12)' : '';
+    b.style.borderColor = p.id === id ? 'var(--blue)' : 'transparent';
+  });
+
+  // show/hide chapter nav
+  document.getElementById('chapter-nav').style.display = pdf.showChapters ? '' : 'none';
+
+  // choose URL: prefer localPath if available
+  const url = pdf.localPath || pdf.url;
+  loadPdf(url);
+}
 
 // ── Chapter sidebar ──────────────────────────────────────
 (function buildChapterNav() {
@@ -367,7 +453,43 @@ function fitWidth() {
   });
 }
 
-async function initReader() {
+async function loadPdf(url) {
+  _pdf = null;
+  _curPage = 1;
+  canvas.width = 0;
+  canvas.height = 0;
+
+  if (!url) {
+    showState('state-nourl');
+    return;
+  }
+
+  showState('state-loading');
+
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const loadingTask = pdfjsLib.getDocument({ url, withCredentials: false });
+    _pdf = await loadingTask.promise;
+
+    pageTotal.textContent = `/ ${_pdf.numPages}`;
+    pageInput.max = _pdf.numPages;
+    pageInput.value = 1;
+    btnPrev.disabled = true;
+    btnNext.disabled = _pdf.numPages <= 1;
+
+    showState(null);
+    fitWidth();
+    await renderPage(1);
+  } catch (e) {
+    document.getElementById('error-detail').textContent = e.message;
+    showState('state-error');
+    console.error('PDF load error:', e);
+  }
+}
+
+function initReader() {
   // ページ遷移
   btnPrev.addEventListener('click',  () => jumpToPage(_curPage - 1));
   btnNext.addEventListener('click',  () => jumpToPage(_curPage + 1));
@@ -383,33 +505,9 @@ async function initReader() {
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   jumpToPage(_curPage - 1);
   });
 
-  if (!PDF_URL) {
-    showState('state-nourl');
-    return;
-  }
-
-  showState('state-loading');
-
-  try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-    const loadingTask = pdfjsLib.getDocument(PDF_URL);
-    _pdf = await loadingTask.promise;
-
-    pageTotal.textContent = `/ ${_pdf.numPages}`;
-    pageInput.max = _pdf.numPages;
-    btnPrev.disabled = false;
-    btnNext.disabled = false;
-
-    showState(null);
-    fitWidth();
-    await renderPage(1);
-  } catch (e) {
-    document.getElementById('error-detail').textContent = e.message;
-    showState('state-error');
-    console.error('PDF load error:', e);
-  }
+  // 最初のPDFを読み込む（Beginners Guide）
+  const defaultPdf = PDF_CATALOG.find(p => p.id === activePdfId);
+  if (defaultPdf) loadPdf(defaultPdf.localPath || defaultPdf.url);
 }
 
 initAuth();

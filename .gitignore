@@ -1,6 +1,9 @@
 # Node
 node_modules/
 
+# Large PDFs (download manually from Blackmagic official site)
+assets/*.pdf
+
 # OS
 .DS_Store
 Thumbs.db

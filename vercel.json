@@ -4,6 +4,7 @@
     { "src": "/quiz",     "dest": "/quiz.html" },
     { "src": "/progress", "dest": "/progress.html" },
     { "src": "/study",    "dest": "/study.html" },
+    { "src": "/video",    "dest": "/video.html" },
     { "src": "/reader",   "dest": "/reader.html" }
   ]
 }
