@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -185,7 +185,11 @@
 
 <!-- Auth Gate -->
 <div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
-  <div class="auth-box">
+  <div id="auth-spinner-wrap" style="display:flex;flex-direction:column;align-items:center;gap:16px">
+    <div class="auth-spinner"></div>
+    <p style="font-size:13px;color:#64748b">認証確認中...</p>
+  </div>
+  <div id="auth-box" class="auth-box" style="display:none">
     <div class="auth-logo-wrap">
       <div style="font-size:40px;margin-bottom:8px">🎬</div>
       <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">DaVinci Trainer</h2>

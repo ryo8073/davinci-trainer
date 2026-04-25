@@ -6,14 +6,16 @@ let _currentUser = null;
 function initAuth() {
   firebase.initializeApp(FIREBASE_CONFIG);
 
-  const gate = document.getElementById('auth-gate');
+  const gate        = document.getElementById('auth-gate');
+  const spinnerWrap = document.getElementById('auth-spinner-wrap');
+  const authBox     = document.getElementById('auth-box');
 
   firebase.auth().onAuthStateChanged(async user => {
     _currentUser = user;
     if (user) {
+      // 認証済み → ゲートを即非表示
       if (gate) gate.style.display = 'none';
       initDB(user);
-      // ページ別初期化
       const page = document.body.dataset.page;
       if      (page === 'dashboard') await initDashboard();
       else if (page === 'quiz')      initQuiz();
@@ -21,7 +23,9 @@ function initAuth() {
       else if (page === 'reader')    initReader();
       else if (page === 'video')     { /* video list already built */ }
     } else {
-      if (gate) gate.style.display = 'flex';
+      // 未ログイン確定 → スピナーを消してフォームを表示
+      if (spinnerWrap) spinnerWrap.style.display = 'none';
+      if (authBox)     authBox.style.display     = '';
     }
   });
 
