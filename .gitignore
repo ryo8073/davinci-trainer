@@ -4,6 +4,9 @@ node_modules/
 # Large PDFs (download manually from Blackmagic official site)
 assets/*.pdf
 
+# Firebase/GCP 設定ファイル（ローカル作業用）
+cors.json
+
 # OS
 .DS_Store
 Thumbs.db
