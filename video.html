@@ -275,6 +275,7 @@
 <script defer src="js/app.js"></script>
 <script defer src="js/auth.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 
 const VIDEOS = [
   { id:"ZTbh928Qk3o", ep:"#1", title:"動画編集の基礎",         sub:"エディットページ",                   page:"p.111-200" },
@@ -361,7 +362,8 @@ function toggleVideoSidebar() {
 }
 
 buildList();
-document.addEventListener('DOMContentLoaded', () => initAuth());
+initAuth();
+}); // end DOMContentLoaded
 </script>
 </body>
 </html>

@@ -301,6 +301,7 @@
 <script defer src="js/app.js"></script>
 <script defer src="js/auth.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 
 // ── PDF catalog ──────────────────────────────────────────
 const PDF_CATALOG = [
@@ -598,7 +599,8 @@ function initReader() {
   if (defaultPdf) loadPdf(defaultPdf.url || defaultPdf.localPath);
 }
 
-document.addEventListener('DOMContentLoaded', () => initAuth());
+initAuth();
+}); // end DOMContentLoaded
 </script>
 </body>
 </html>
