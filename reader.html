@@ -484,14 +484,34 @@ async function loadPdf(url) {
     return;
   }
 
+  // PDF.jsがまだ読み込まれていない場合（deferスクリプト）
+  if (typeof pdfjsLib === 'undefined') {
+    showState('state-loading');
+    // pdfjsLibが利用可能になるまで待機（最大5秒）
+    for (let i = 0; i < 50; i++) {
+      await new Promise(r => setTimeout(r, 100));
+      if (typeof pdfjsLib !== 'undefined') break;
+    }
+    if (typeof pdfjsLib === 'undefined') {
+      showIframeFallback(url);
+      return;
+    }
+  }
+
   showState('state-loading');
 
+  // CORSが事前に失敗するか高速チェック（タイムアウト8秒）
   try {
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const loadingTask = pdfjsLib.getDocument({ url, withCredentials: false });
-    _pdf = await loadingTask.promise;
+
+    // 15秒タイムアウト
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('PDF load timeout')), 15000)
+    );
+    _pdf = await Promise.race([loadingTask.promise, timeoutPromise]);
 
     pageTotal.textContent = `/ ${_pdf.numPages}`;
     pageInput.max = _pdf.numPages;
@@ -504,14 +524,8 @@ async function loadPdf(url) {
     await renderPage(1);
   } catch (e) {
     console.error('PDF load error:', e);
-    // CORS / fetch エラー → Google Docs ビューアにフォールバック
-    const isCors = e.message && (e.message.includes('fetch') || e.message.includes('CORS') || e.name === 'UnknownErrorException');
-    if (isCors) {
-      showIframeFallback(url);
-    } else {
-      document.getElementById('error-detail').textContent = e.message;
-      showState('state-error');
-    }
+    // あらゆるエラー → フォールバック（新しいタブで開く）
+    showIframeFallback(url);
   }
 }
 
