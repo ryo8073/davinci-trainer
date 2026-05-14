@@ -37,6 +37,7 @@
       <div class="logo-sub">Certified Trainer Study System</div>
     </div>
   </a>
+  <button class="nav-toggle" onclick="document.querySelector('.site-nav').classList.toggle('open')" aria-label="メニュー">☰</button>
   <nav class="site-nav">
     <a class="nav-link" href="index.html">🏠 Today</a>
     <a class="nav-link" href="quiz.html">🧠 Quiz</a>
@@ -101,15 +102,15 @@
 </main>
 
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <!-- App -->
-<script src="js/firebase-config.js"></script>
-<script src="js/data.js"></script>
-<script src="js/db.js"></script>
-<script src="js/app.js"></script>
-<script src="js/auth.js"></script>
-<script>initAuth();</script>
+<script defer src="js/firebase-config.js"></script>
+<script defer src="js/data.js"></script>
+<script defer src="js/db.js"></script>
+<script defer src="js/app.js"></script>
+<script defer src="js/auth.js"></script>
+<script defer>document.addEventListener('DOMContentLoaded',()=>initAuth());</script>
 </body>
 </html>

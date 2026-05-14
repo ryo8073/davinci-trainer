@@ -186,7 +186,11 @@
 
 <!-- Auth Gate -->
 <div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
-  <div class="auth-box">
+  <div id="auth-spinner-wrap" style="display:flex;flex-direction:column;align-items:center;gap:16px">
+    <div class="auth-spinner"></div>
+    <p style="font-size:13px;color:#64748b">認証確認中...</p>
+  </div>
+  <div id="auth-box" class="auth-box" style="display:none">
     <div class="auth-logo-wrap">
       <div style="font-size:40px;margin-bottom:8px">🎬</div>
       <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">DaVinci Trainer</h2>
@@ -209,6 +213,7 @@
       <div class="logo-sub">Certified Trainer Study System</div>
     </div>
   </a>
+  <button class="nav-toggle" onclick="document.querySelector('.site-nav').classList.toggle('open')" aria-label="メニュー">☰</button>
   <nav class="site-nav">
     <a class="nav-link" href="index.html">🏠 Today</a>
     <a class="nav-link" href="quiz.html">🧠 Quiz</a>
@@ -222,14 +227,20 @@
 
 <div class="video-layout">
 
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleVideoSidebar()"></div>
+
   <!-- Sidebar -->
-  <aside class="video-sidebar">
+  <aside class="video-sidebar" id="video-sidebar">
     <div class="sidebar-title">公式チュートリアル（全9回）</div>
     <div id="video-list"></div>
   </aside>
 
   <!-- Main -->
   <div class="video-main" id="video-main">
+    <div style="padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0">
+      <button class="sidebar-toggle" id="video-sidebar-toggle" onclick="toggleVideoSidebar()">☰ 動画リスト</button>
+    </div>
     <div class="no-video" id="no-video">
       <div style="font-size:48px">▶️</div>
       <h3>動画を選択してください</h3>
@@ -253,15 +264,15 @@
 </div>
 
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <!-- App -->
-<script src="js/firebase-config.js"></script>
-<script src="js/data.js"></script>
-<script src="js/db.js"></script>
-<script src="js/app.js"></script>
-<script src="js/auth.js"></script>
+<script defer src="js/firebase-config.js"></script>
+<script defer src="js/data.js"></script>
+<script defer src="js/db.js"></script>
+<script defer src="js/app.js"></script>
+<script defer src="js/auth.js"></script>
 <script>
 
 const VIDEOS = [
@@ -342,6 +353,11 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') playNext();
   if (e.key === 'ArrowLeft')  playPrev();
 });
+
+function toggleVideoSidebar() {
+  document.getElementById('video-sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
 
 buildList();
 initAuth();

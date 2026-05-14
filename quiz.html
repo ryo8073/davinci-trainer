@@ -37,6 +37,7 @@
       <div class="logo-sub">Certified Trainer Study System</div>
     </div>
   </a>
+  <button class="nav-toggle" onclick="document.querySelector('.site-nav').classList.toggle('open')" aria-label="メニュー">☰</button>
   <nav class="site-nav">
     <a class="nav-link" href="index.html">🏠 Today</a>
     <a class="nav-link active" href="quiz.html">🧠 Quiz</a>
@@ -66,6 +67,13 @@
           <select class="form-select" id="cat-select"></select>
         </div>
         <div class="form-group">
+          <label class="form-label">🌐 出題言語</label>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary lang-btn active" id="lang-en" onclick="setQuizLang('en')" style="flex:1;padding:10px">English（本番と同じ）</button>
+            <button class="btn btn-secondary lang-btn" id="lang-ja" onclick="setQuizLang('ja')" style="flex:1;padding:10px">日本語</button>
+          </div>
+        </div>
+        <div class="form-group">
           <label class="form-label" for="count-select">🔢 問題数</label>
           <select class="form-select" id="count-select">
             <option value="5">5問（軽いウォームアップ）</option>
@@ -75,10 +83,22 @@
             <option value="999">全問（すべて）</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">🎮 モード</label>
+          <select class="form-select" id="mode-select">
+            <option value="practice" selected>練習モード（1問ずつ正誤表示）</option>
+            <option value="exam">試験モード（60分タイマー・まとめて採点）</option>
+          </select>
+        </div>
         <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px;font-size:13px;color:var(--text2)">
           ⚠️ <strong style="color:var(--text)">本番試験の注意事項：</strong>
           メールアドレスあたり生涯2回まで。合格ライン85%（50問中43問以上）。制限時間60分。
           十分な準備ができてから受験すること。
+        </div>
+        <!-- Review mode -->
+        <div style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)">
+          <span style="font-size:13px;color:var(--text2)">🔄 復習待ち: <strong style="color:var(--gold)" id="review-count-quiz">0</strong> 問</span>
+          <button class="btn btn-secondary hidden" id="review-start-btn" style="margin-left:auto;padding:8px 16px;font-size:13px">復習モード</button>
         </div>
         <button class="btn btn-primary" id="start-btn" style="width:100%;padding:16px">
           クイズを始める →
@@ -88,6 +108,11 @@
 
     <!-- Quiz Area -->
     <div id="quiz-area" class="hidden">
+      <!-- Timer (exam mode only) -->
+      <div class="timer-bar hidden" id="timer-bar">
+        <span class="timer-disp" id="timer-disp">60:00</span>
+        <div class="timer-track"><div class="timer-fill" id="timer-progress" style="width:100%"></div></div>
+      </div>
       <div class="quiz-meta">
         <span id="q-num" class="q-num">問 1 / 10</span>
         <span id="q-cat" class="q-cat-badge"></span>
@@ -113,6 +138,7 @@
           <div class="result-score" id="result-score">—</div>
           <div id="result-pct" class="result-pct">—%</div>
           <div id="result-msg" class="result-msg"></div>
+          <div id="result-xp"></div>
         </div>
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;padding-top:20px;border-top:1px solid var(--border)">
           <button class="btn btn-primary" onclick="location.reload()">もう一度やる</button>
@@ -131,15 +157,27 @@
 </main>
 
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <!-- App -->
-<script src="js/firebase-config.js"></script>
-<script src="js/data.js"></script>
-<script src="js/db.js"></script>
-<script src="js/app.js"></script>
-<script src="js/auth.js"></script>
-<script>initAuth();</script>
+<script defer src="js/firebase-config.js"></script>
+<script defer src="js/data.js"></script>
+<script defer src="js/db.js"></script>
+<script defer src="js/app.js"></script>
+<script defer src="js/auth.js"></script>
+<script>
+var quizLang = 'en';
+function setQuizLang(lang) {
+  quizLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.id === 'lang-' + lang);
+    b.style.background = b.id === 'lang-' + lang ? 'var(--blue)' : '';
+    b.style.color = b.id === 'lang-' + lang ? '#fff' : '';
+    b.style.borderColor = b.id === 'lang-' + lang ? 'var(--blue)' : '';
+  });
+}
+document.addEventListener('DOMContentLoaded', () => { setQuizLang('en'); initAuth(); });
+</script>
 </body>
 </html>

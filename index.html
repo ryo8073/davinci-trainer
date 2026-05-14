@@ -37,6 +37,7 @@
       <div class="logo-sub">Certified Trainer Study System</div>
     </div>
   </a>
+  <button class="nav-toggle" onclick="document.querySelector('.site-nav').classList.toggle('open')" aria-label="メニュー">☰</button>
   <nav class="site-nav">
     <a class="nav-link active" href="index.html">🏠 Today</a>
     <a class="nav-link" href="quiz.html">🧠 Quiz</a>
@@ -63,6 +64,27 @@
       </div>
       <div class="exam-chip" id="exam-countdown">試験まで計算中...</div>
     </div>
+  </div>
+
+  <!-- Review Card -->
+  <a class="review-card hidden" id="review-card" href="quiz.html?mode=review" style="margin-bottom:20px">
+    <div class="review-count" id="review-count">0</div>
+    <div>
+      <div class="review-label">今日の復習問題</div>
+      <div class="review-sub">間隔反復で記憶を定着させましょう</div>
+    </div>
+  </a>
+
+  <!-- XP Bar -->
+  <div class="xp-bar-wrap" style="margin-bottom:20px">
+    <div class="xp-header">
+      <div>
+        <span class="xp-level">Lv.<span id="level-value">1</span></span>
+        <span style="font-size:13px;color:var(--text2);margin-left:10px">⭐ <span id="xp-value">0</span> XP</span>
+      </div>
+      <span style="font-size:12px;color:var(--text3)">次まで <span id="xp-next">100</span> XP</span>
+    </div>
+    <div class="xp-track"><div class="xp-fill" id="xp-bar" style="width:0%"></div></div>
   </div>
 
   <!-- Stats Row -->
@@ -129,6 +151,24 @@
 
     <!-- Right: Sidebar -->
     <div>
+      <!-- Badges -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">🏅 バッジ</div>
+        <div id="badge-row" class="badge-row"></div>
+      </div>
+
+      <!-- Category Skill Rings -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">📊 カテゴリ別スキル（最高スコア）</div>
+        <div id="skill-rings" class="skill-rings"></div>
+      </div>
+
+      <!-- Activity Timeline -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">📋 最近の活動</div>
+        <div id="activity-timeline"></div>
+      </div>
+
       <!-- Week Progress -->
       <div class="card" style="margin-bottom:20px">
         <div class="card-title">週別進捗</div>
@@ -143,7 +183,7 @@
             <div class="qb-icon" style="background:rgba(245,158,11,.15);color:var(--gold)">🧠</div>
             <div>
               <div style="font-weight:600">練習クイズを始める</div>
-              <div style="font-size:12px;color:var(--text2)">全60問 / カテゴリ別も可</div>
+              <div style="font-size:12px;color:var(--text2)">全100問 / カテゴリ別も可</div>
             </div>
           </a>
           <a class="quick-btn" href="progress.html">
@@ -174,16 +214,16 @@
 
 </main>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- Firebase (defer: non-blocking, order preserved) -->
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <!-- App -->
-<script src="js/firebase-config.js"></script>
-<script src="js/data.js"></script>
-<script src="js/db.js"></script>
-<script src="js/app.js"></script>
-<script src="js/auth.js"></script>
-<script>initAuth();</script>
+<script defer src="js/firebase-config.js"></script>
+<script defer src="js/data.js"></script>
+<script defer src="js/db.js"></script>
+<script defer src="js/app.js"></script>
+<script defer src="js/auth.js"></script>
+<script defer>document.addEventListener('DOMContentLoaded',()=>initAuth());</script>
 </body>
 </html>
