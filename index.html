@@ -132,7 +132,15 @@
     <!-- Left: Today's Tasks -->
     <div>
       <div class="card">
-        <div class="card-title">今日のタスク</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">タスク</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="tb-btn" id="day-nav-prev" onclick="navigateDay(-1)" style="padding:4px 10px;font-size:12px">←</button>
+            <span id="day-nav-label" style="font-size:13px;font-weight:600;color:var(--green);min-width:56px;text-align:center">今日</span>
+            <button class="tb-btn" id="day-nav-next" onclick="navigateDay(1)" style="padding:4px 10px;font-size:12px">→</button>
+            <button class="tb-btn" id="day-nav-today-btn" onclick="goToToday()" style="padding:4px 10px;font-size:11px;display:none;color:var(--blue)">今日に戻る</button>
+          </div>
+        </div>
         <div id="task-list">
           <p style="color:var(--text3);font-size:14px">タスクを読み込み中...</p>
         </div>

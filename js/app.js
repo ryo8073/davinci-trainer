@@ -163,10 +163,62 @@ function updateRing(id, pct) {
 }
 
 // ── Dashboard ─────────────────────────────────────────────
+let _viewingDayIdx = null; // null = today
+
+function navigateDay(delta) {
+  const todayIdx = getDayIndex();
+  if (_viewingDayIdx === null) _viewingDayIdx = todayIdx;
+  _viewingDayIdx = Math.max(0, Math.min(DAYS.length - 1, _viewingDayIdx + delta));
+  renderDayView(_viewingDayIdx);
+}
+
+function goToToday() {
+  _viewingDayIdx = null;
+  renderDayView(getDayIndex());
+}
+
+async function renderDayView(idx) {
+  const state = await getState();
+  const dayData = getDayData(idx);
+  const weekData = WEEKS[dayData.w - 1];
+  const todayIdx = getDayIndex();
+  const isToday = idx === todayIdx;
+
+  if (el('today-day-num')) el('today-day-num').textContent = `Day ${dayData.d}`;
+  if (el('today-week'))    el('today-week').textContent    = `Week ${dayData.w}`;
+  if (el('today-title'))   el('today-title').textContent   = dayData.title;
+  if (el('week-theme'))    el('week-theme').textContent    = weekData.title;
+
+  // Show/hide "today" indicator
+  if (el('day-nav-today-btn')) {
+    el('day-nav-today-btn').style.display = isToday ? 'none' : '';
+  }
+  if (el('day-nav-label')) {
+    el('day-nav-label').textContent = isToday ? '今日' : `Day ${dayData.d}`;
+    el('day-nav-label').style.color = isToday ? 'var(--green)' : 'var(--text2)';
+  }
+
+  // Disable prev/next at boundaries
+  if (el('day-nav-prev')) el('day-nav-prev').disabled = idx <= 0;
+  if (el('day-nav-next')) el('day-nav-next').disabled = idx >= DAYS.length - 1;
+
+  renderTasks(dayData.tasks, state);
+
+  // Update today progress ring for the viewed day
+  const viewProg = {
+    done: dayData.tasks.filter(t => state.completed.includes(t.id)).length,
+    total: dayData.tasks.length,
+  };
+  viewProg.pct = viewProg.total ? Math.round(viewProg.done / viewProg.total * 100) : 0;
+  if (el('today-pct')) el('today-pct').textContent = viewProg.pct + '%';
+  updateRing('today-ring', viewProg.pct);
+}
+
 async function initDashboard() {
   let state = await getState();
 
   const idx     = getDayIndex();
+  _viewingDayIdx = null;
   const dayData = getDayData(idx);
   const weekData = WEEKS[dayData.w - 1];
 
@@ -857,32 +909,75 @@ function showDayModal(day, state) {
 
   const doneTasks = day.tasks.filter(t => state.completed.includes(t.id));
 
-  overlay.innerHTML = `
-    <div class="day-modal">
-      <button class="day-modal-close" onclick="this.closest('.day-modal-overlay').remove()">&times;</button>
-      <div class="day-modal-title">Day ${day.d} — ${day.title}</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">
-        ${dateStr} / ${weekData.icon} Week ${day.w}: ${weekData.title}
-        <span style="margin-left:8px;color:${doneTasks.length === day.tasks.length ? 'var(--green)' : 'var(--text3)'}">
-          (${doneTasks.length}/${day.tasks.length} 完了)
-        </span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        ${day.tasks.map(t => {
-          const meta = TASK_META[t.t] || TASK_META.p;
-          const done = state.completed.includes(t.id);
-          return `<div style="display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);${done ? 'opacity:.6' : ''}">
-            <span style="font-size:16px">${done ? '✅' : '⬜'}</span>
-            <div style="flex:1">
-              <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${meta.color}20;color:${meta.color};margin-bottom:4px">${meta.icon} ${meta.label}</span>
-              <div style="font-size:13px;${done ? 'text-decoration:line-through' : ''}">${t.text}</div>
-            </div>
-            <span style="font-size:12px;color:var(--text3);white-space:nowrap">${formatMin(t.min)}</span>
-          </div>`;
-        }).join('')}
-      </div>
+  const modal = document.createElement('div');
+  modal.className = 'day-modal';
+
+  // Header
+  modal.innerHTML = `
+    <button class="day-modal-close" onclick="this.closest('.day-modal-overlay').remove()">&times;</button>
+    <div class="day-modal-title">Day ${day.d} — ${day.title}</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">
+      ${dateStr} / ${weekData.icon} Week ${day.w}: ${weekData.title}
+      <span class="day-modal-count" style="margin-left:8px;color:${doneTasks.length === day.tasks.length ? 'var(--green)' : 'var(--text3)'}">
+        (${doneTasks.length}/${day.tasks.length} 完了)
+      </span>
     </div>
+    <div class="day-modal-tasks"></div>
   `;
+
+  const tasksContainer = modal.querySelector('.day-modal-tasks');
+  tasksContainer.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+
+  day.tasks.forEach(t => {
+    const meta = TASK_META[t.t] || TASK_META.p;
+    const done = state.completed.includes(t.id);
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);transition:opacity .2s;${done ? 'opacity:.6' : ''}`;
+    row.innerHTML = `
+      <label class="task-check" style="margin-top:2px">
+        <input type="checkbox" data-id="${t.id}" ${done ? 'checked' : ''}>
+        <span class="checkmark"></span>
+      </label>
+      <div style="flex:1">
+        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${meta.color}20;color:${meta.color};margin-bottom:4px">${meta.icon} ${meta.label}</span>
+        <div style="font-size:13px;${done ? 'text-decoration:line-through' : ''}" class="modal-task-text">${t.text}</div>
+      </div>
+      <span style="font-size:12px;color:var(--text3);white-space:nowrap">${formatMin(t.min)}</span>
+    `;
+
+    const cb = row.querySelector('input[type=checkbox]');
+    cb.addEventListener('change', async (e) => {
+      const taskId = e.target.dataset.id;
+      const checked = e.target.checked;
+
+      if (checked) {
+        await addCompleted(taskId);
+        if (!state.completed.includes(taskId)) state.completed.push(taskId);
+      } else {
+        await removeCompleted(taskId);
+        state.completed = state.completed.filter(id => id !== taskId);
+      }
+
+      // Update row visual
+      row.style.opacity = checked ? '.6' : '1';
+      row.querySelector('.modal-task-text').style.textDecoration = checked ? 'line-through' : 'none';
+
+      // Update counter
+      const nowDone = day.tasks.filter(t2 => state.completed.includes(t2.id)).length;
+      const countEl = modal.querySelector('.day-modal-count');
+      if (countEl) {
+        countEl.textContent = `(${nowDone}/${day.tasks.length} 完了)`;
+        countEl.style.color = nowDone === day.tasks.length ? 'var(--green)' : 'var(--text3)';
+      }
+
+      // Update progress grid behind modal
+      renderProgressGrid(state);
+    });
+
+    tasksContainer.appendChild(row);
+  });
+
+  overlay.appendChild(modal);
   document.body.appendChild(overlay);
 }
 
