@@ -19,13 +19,13 @@ function initAuth() {
     gate.style.display = 'none';
   }
 
-  // Timeout: 5秒以内にauth stateが来なければログインフォーム表示
+  // Timeout: 3秒以内にauth stateが来なければログインフォーム表示
   const authTimeout = setTimeout(() => {
     if (gate && gate.style.display !== 'none') {
       if (spinnerWrap) spinnerWrap.style.display = 'none';
       if (authBox) authBox.style.display = '';
     }
-  }, 5000);
+  }, 3000);
 
   firebase.auth().onAuthStateChanged(async user => {
     clearTimeout(authTimeout);

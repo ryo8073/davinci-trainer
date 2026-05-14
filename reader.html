@@ -185,6 +185,7 @@
 
 <!-- Auth Gate -->
 <div id="auth-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d1117,#1e2538);display:flex;align-items:center;justify-content:center;padding:20px">
+<script>if(sessionStorage.getItem('dv_auth_uid'))document.currentScript.parentElement.style.display='none';</script>
   <div id="auth-spinner-wrap" style="display:flex;flex-direction:column;align-items:center;gap:16px">
     <div class="auth-spinner"></div>
     <p style="font-size:13px;color:#64748b">認証確認中...</p>
@@ -583,7 +584,7 @@ function initReader() {
   if (defaultPdf) loadPdf(defaultPdf.url || defaultPdf.localPath);
 }
 
-initAuth();
+document.addEventListener('DOMContentLoaded', () => initAuth());
 </script>
 </body>
 </html>
